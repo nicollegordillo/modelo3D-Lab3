@@ -158,28 +158,28 @@ fn handle_input(window: &Window, translation: &mut Vec3, rotation: &mut Vec3, sc
   if window.is_key_down(Key::Down) {
     translation.y += 10.0;
   }
-  if window.is_key_down(Key::S) {
+  if window.is_key_down(Key::I) {
     *scale += 2.0;
   }
-  if window.is_key_down(Key::A) {
+  if window.is_key_down(Key::O) {
     *scale -= 2.0;
   }
-  if window.is_key_down(Key::Q) {
+  if window.is_key_down(Key::D) {
         rotation.x -= PI / 10.0;
     }
-    if window.is_key_down(Key::W) {
+    if window.is_key_down(Key::A) {
         rotation.x += PI / 10.0;
     }
-    if window.is_key_down(Key::E) {
+    if window.is_key_down(Key::S) {
         rotation.y -= PI / 10.0;
     }
-    if window.is_key_down(Key::R) {
+    if window.is_key_down(Key::W) {
         rotation.y += PI / 10.0;
     }
-    if window.is_key_down(Key::T) {
+    if window.is_key_down(Key::Q) {
         rotation.z -= PI / 10.0;
     }
-    if window.is_key_down(Key::Y) {
+    if window.is_key_down(Key::E) {
         rotation.z += PI / 10.0;
     }
 }
