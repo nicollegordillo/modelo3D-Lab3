@@ -1,16 +1,18 @@
 // obj.rs
 
-use nalgebra_glm::{Vec2, Vec3};
+use nalgebra_glm::{Vec2, Vec3}; 
 use crate::vertex::Vertex;
-use crate::color::Color;
 use tobj;
 
-
 pub struct Obj {
-    pub vertices: Vec<Vec3>,
-    pub normals: Vec<Vec3>,
-    pub texcoords: Vec<Vec2>,
-    pub indices: Vec<u32>,
+    meshes: Vec<Mesh>,
+}
+
+struct Mesh {
+    vertices: Vec<Vec3>,
+    normals: Vec<Vec3>,
+    texcoords: Vec<Vec2>,
+    indices: Vec<u32>,
 }
 
 impl Obj {
@@ -21,57 +23,45 @@ impl Obj {
             ..Default::default()
         })?;
 
-        let mesh = &models[0].mesh;
+        let meshes = models.into_iter().map(|model| {
+            let mesh = model.mesh;
+            Mesh {
+                vertices: mesh.positions.chunks(3)
+                    .map(|v| Vec3::new(v[0], -v[1], -v[2]))
+                    .collect(),
+                normals: mesh.normals.chunks(3)
+                    .map(|n| Vec3::new(n[0], -n[1], -n[2]))
+                    .collect(),
+                texcoords: mesh.texcoords.chunks(2)
+                    .map(|t| Vec2::new(t[0], 1.0 - t[1]))
+                    .collect(),
+                indices: mesh.indices,
+            }
+        }).collect();
 
-        let vertices: Vec<Vec3> = mesh.positions.chunks(3)
-            .map(|v| Vec3::new(v[0], v[1], v[2]))
-            .collect();
-
-        let normals: Vec<Vec3> = mesh.normals.chunks(3)
-            .map(|n| Vec3::new(n[0], n[1], n[2]))
-            .collect();
-
-        let texcoords: Vec<Vec2> = mesh.texcoords.chunks(2)
-            .map(|t| Vec2::new(t[0], t[1]))
-            .collect();
-
-        let indices = mesh.indices.clone();
-
-        Ok(Obj {
-            vertices,
-            normals,
-            texcoords,
-            indices,
-        })
+        Ok(Obj {meshes})
     }
+    
+    pub fn get_vertex_array(&self) -> Vec<Vertex> {
+        let mut vertices = Vec::new();
 
-    pub fn to_vertices(&self) -> Vec<Vertex> {
-        let mut vertex_array = Vec::new();
+        for mesh in &self.meshes {
+            for &index in &mesh.indices {
+                let position = mesh.vertices[index as usize];
+                let normal = mesh.normals.get(index as usize)
+                    .cloned()
+                    .unwrap_or(Vec3::new(0.0,1.0,0.0));
+                let tex_coords = mesh.texcoords.get(index as usize)
+                    .cloned()
+                    .unwrap_or(Vec2::new(0.0,0.0));
 
-        for &index in &self.indices {
-            let i = index as usize;
+                vertices.push(Vertex::new(position, normal, tex_coords));
 
-            let position = self.vertices[i];
-            let normal = if !self.normals.is_empty() {
-                self.normals[i]
-            } else {
-                Vec3::new(0.0, 0.0, 0.0)
-            };
-
-            let tex_coords = if !self.texcoords.is_empty() {
-                self.texcoords[i]
-            } else {
-                Vec2::new(0.0, 0.0)
-            };
-
-            let color = Color::black();
-
-            let vertex = Vertex::new_with_color(position, color);
-            vertex_array.push(vertex);
+            }
         }
 
-        vertex_array
+        vertices
     }
+
+
 }
-
-
